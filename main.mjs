@@ -84,7 +84,6 @@ const notifyAcceptedConnection = (input, clients) => {
   const pId = input[6];
   const ind = clients.queue.findIndex((plyr) => plyr.steamId === steamId);
   if (ind > -1) {
-    clients.queue[ind].lastMsgTime = requestedJoin;
     clients.queue[ind].snc = input[7];
     return;
   }
@@ -101,7 +100,6 @@ const serverAcceptingPostChallengeConnectionFrom = (input, clients) => {
   else {
     clients.queue[ind].requestedJoin = requestedJoin;
     clients.queue[ind].msgId = msgId;
-    clients.queue[ind].lastMsgTime = requestedJoin;
   }
 };
 
@@ -110,8 +108,7 @@ const logOnlineSTEAMAddinguser = (input, clients) => {
   const msgId = input[2];
   const steamId = input[3];
   const ind = clients.queue.findIndex((plyr) => testTimemsgId(plyr, requestedJoin, msgId));
-  if (ind > -1) clients.queue[ind].lastMsgTime = requestedJoin;
-  else if (ind < 0) clients.queue.push(new Player(requestedJoin, msgId, "", steamId, ""));
+   if (ind < 0) clients.queue.push(new Player(requestedJoin, msgId, "", steamId, ""));
 };
 
 const addClientConnectionAddedclientconnection = (input, clients) => {
@@ -124,7 +121,6 @@ const addClientConnectionAddedclientconnection = (input, clients) => {
     if (/^SteamNetConnection_(\d+)$/.test(input[5])) {
       clients.queue[ind].snc = input[5];
     }
-    clients.queue[ind].lastMsgTime = input[1];
   }
 };
 
