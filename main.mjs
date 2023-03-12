@@ -50,6 +50,13 @@ const endFunc = (clients) => {
   console.log(`${totalGoodConnections} Successful Connections from ${totalGoodConnectionsUnique} Unique Visitors\n${totalDCfromQue} D/C from Queue Events happened to ${totalUniqueDCfQ} Unique Visitors`);
 };
 
+const regexToCompare = (line, clients, regex) => {
+  const ind = regex.findIndex((element) => element.regex.test(line));
+  if (ind === -1) return;
+  const mline = line.match(regex[ind].regex);
+  regex[ind].function(mline, clients);
+};
+
 const LogfileBegin = (line) => {
   console.log(`Log ${line[1]}`);
 };
@@ -161,13 +168,6 @@ const timeDiff = (a, b, thresha, threshb) => {
 
 const createdSquad = (input, clients) => {
   rareBadJoinSquad(input, clients);
-};
-
-const regexToCompare = (line, clients, regex) => {
-  const ind = regex.findIndex((element) => element.regex.test(line));
-  if (ind === -1) return;
-  const mline = line.match(regex[ind].regex);
-  regex[ind].function(mline, clients);
 };
 
 const newNameandHex = (input, clients) => {
@@ -290,7 +290,7 @@ const _regex = [
     function: newNameandHex,
   },
   {
-    regex: /Log file open, (?<date_time>[0-9/ :]+)/,
+    regex: /Log file open, ([0-9/ :]+)/,
     function: LogfileBegin,
   },
 ];
