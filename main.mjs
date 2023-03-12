@@ -52,7 +52,7 @@ const endFunc = (clients) => {
 
 const LogfileBegin = (line) => {
   console.log(`Log ${line[1]}`);
-}
+};
 
 const hasBeenRemoved = (input, clients) => {
   const steamId = input[3];
@@ -144,10 +144,6 @@ const updateConnFilterPre = (input, ind, clients) => {
   clients.queue = clients.queue.filter((plyr) => plyr.snc !== snc);
 };
 
-const uNetConnectionClose = (input, clients) => {
-  hasBeenRemoved([input[0], input[1], input[2], input[3]], clients);
-};
-
 const testTimemsgId = (plyr, requestedJoin, msgId) => {
   if (plyr.msgId === msgId && timeDiff(Date.parse(convTimeDate(plyr.requestedJoin)), Date.parse(convTimeDate(requestedJoin)), 6, 0)) return true;
   return false;
@@ -163,11 +159,30 @@ const timeDiff = (a, b, thresha, threshb) => {
   return false;
 };
 
+const createdSquad = (input, clients) => {
+  rareBadJoinSquad(input, clients);
+};
+
 const regexToCompare = (line, clients, regex) => {
   const ind = regex.findIndex((element) => element.regex.test(line));
   if (ind === -1) return;
   const mline = line.match(regex[ind].regex);
   regex[ind].function(mline, clients);
+};
+
+const newNameandHex = (input, clients) => {
+  const name = input[3];
+  const hex = input[4];
+  const ind = clients.queue.findIndex((plyr) => plyr.steamId === BigInt(hex).toString());
+  if (ind > -1) clients.queue[ind].name = name;
+};
+
+const uNetConnectionClose = (input, clients) => {
+  const line = input[0];
+  const time = input[1];
+  const msgId = input[2];
+  const steamId = input[3];
+  hasBeenRemoved([line, time, msgId, steamId], clients);
 };
 
 const sendingCloseBunch = (input, clients) => {
@@ -186,20 +201,6 @@ const sendingCloseBunch_Uid_Invalid = (input, clients) => {
   hasBeenRemoved([line, time, msgId, steamId], clients);
 };
 
-const logNetJoinRequest = (input, clients) => {
-  const time = input[1];
-  const msgId = input[2];
-  const steamId = input[3];
-  clients.connections.push(new Player(time, msgId, "", steamId, ""));
-};
-
-const newNameandHex = (input, clients) => {
-  const name = input[3];
-  const hex = input[4];
-  const ind = clients.queue.findIndex((plyr) => plyr.steamId === BigInt(hex).toString());
-  if (ind > -1) clients.queue[ind].name = name;
-};
-
 const connectionClosingDuringPendingDestroy = (input, self) => {
   const line = input[0];
   const time = input[1];
@@ -208,8 +209,11 @@ const connectionClosingDuringPendingDestroy = (input, self) => {
   hasBeenRemoved([line, time, msgId, steamId], self);
 };
 
-const createdSquad = (input, clients) => {
-  rareBadJoinSquad(input, clients);
+const logNetJoinRequest = (input, clients) => {
+  const time = input[1];
+  const msgId = input[2];
+  const steamId = input[3];
+  clients.connections.push(new Player(time, msgId, "", steamId, ""));
 };
 
 const rareBadJoin = (input, clients) => {
@@ -266,8 +270,7 @@ const _regex = [
     function: sendingCloseBunch_Uid_Invalid,
   },
   {
-    regex:
-      /^\[([0-9.:-]+)]\[([ 0-9]+)]LogNet: (?:Warning: UNetConnection::Tick: Connection closing during pending destroy, not all shutdown traffic may have been negotiated|NetworkFailure: ConnectionTimeout, Error: 'UNetConnection::Tick: Connection TIMED OUT. Closing connection.). Elapsed: (.+), Real: (.+), Good: (.+), DriverTime: (.+), Threshold: (.+), \[UNetConnection] RemoteAddr: ([0-9]{17}):([0-9]+), Name: (.+), Driver: GameNetDriver (.+), IsServer: YES, PC: (.+), Owner: (.+), UniqueId: Steam:UNKNOWN \[(.+)]/,
+    regex: /^\[([0-9.:-]+)]\[([ 0-9]+)]LogNet: (?:Warning: UNetConnection::Tick: Connection closing during pending destroy, not all shutdown traffic may have been negotiated|NetworkFailure: ConnectionTimeout, Error: 'UNetConnection::Tick: Connection TIMED OUT. Closing connection.). Elapsed: (.+), Real: (.+), Good: (.+), DriverTime: (.+), Threshold: (.+), \[UNetConnection] RemoteAddr: ([0-9]{17}):([0-9]+), Name: (.+), Driver: GameNetDriver (.+), IsServer: YES, PC: (.+), Owner: (.+), UniqueId: Steam:UNKNOWN \[(.+)]/,
     function: connectionClosingDuringPendingDestroy,
   },
   {
