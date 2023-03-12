@@ -1,17 +1,19 @@
-/*Experimental code for Counting DC events from a SquadServer.log by (WTH) Mattt*/
-
-
+/*Experimental code for Counting Queue DC events recorded in SquadServer.log by (WTH) Mattt*/
+/*For use on archived .log only, NOT INTENDED TO BE RUN ON A LIVE SERVER'S .log*/
+/*Sample console output*/
+/*`404 Successful Connections from 350 Unique Visitors
+653 D/C from Queue Events happened to 429 Unique Visitors`*/
 import { readFileSync } from "fs";
 
-/* define .log filepath ie "C:/Users/user/Desktop/logFolder/SquadGame.log"; */
-const _logPath = "C:/Users/mattt/Desktop/log/SquadGame030323.log"; 
+/* define .log filepath "C:/Users/user/Desktop/logFolder/SquadGame.log"; */
+const _logPath = "C:/Users/user/Desktop/logFolder/SquadGame.log"; 
 
 const _log = readFileSync(_logPath).toString().split(/\r?\n/);
 
 class Player {
-  constructor(requestedJoin, msgID, snc, steamId, name) {
+  constructor(requestedJoin, msgId, snc, steamId, name) {
     this.requestedJoin = requestedJoin;
-    this.msgID = msgID;
+    this.msgId = msgId;
     this.snc = snc;
     this.steamId = steamId;
     this.name = name;
@@ -62,7 +64,7 @@ const hasBeenRemoved = (input, clients) => {
 const notifyAcceptedConnection = (input, clients) => {
   const qPort = "15000";
   const requestedJoin = input[1];
-  const msgID = input[2];
+  const msgId = input[2];
   const steamId = input[5];
   const pId = input[6];
   const ind = clients.queue.findIndex((plyr) => plyr.steamId === steamId);
@@ -71,19 +73,19 @@ const notifyAcceptedConnection = (input, clients) => {
     clients.queue[ind].snc = input[7];
     return;
   }
-  ind = clients.queue.findIndex((plyr) => testTimeMsgID(plyr, requestedJoin, msgID));
-  if (ind < 0 && pId === qPort) clients.queue.push(new Player(requestedJoin, msgID, "", steamId, ""));
+  ind = clients.queue.findIndex((plyr) => testTimemsgId(plyr, requestedJoin, msgId));
+  if (ind < 0 && pId === qPort) clients.queue.push(new Player(requestedJoin, msgId, "", steamId, ""));
 };
 
 const serverAcceptingPostChallengeConnectionFrom = (input, clients) => {
   const requestedJoin = input[1];
-  const msgID = input[2];
+  const msgId = input[2];
   const steamId = input[3];
   const ind = clients.queue.findIndex((plyr) => plyr.steamId === steamId);
-  if (ind < 0) clients.queue.push(new Player(requestedJoin, msgID, "", steamId, ""));
+  if (ind < 0) clients.queue.push(new Player(requestedJoin, msgId, "", steamId, ""));
   else {
     clients.queue[ind].requestedJoin = requestedJoin;
-    clients.queue[ind].msgID = msgID;
+    clients.queue[ind].msgId = msgId;
     clients.queue[ind].lastMsgTime = requestedJoin;
   }
 };
@@ -92,7 +94,7 @@ const logOnlineSTEAMAddinguser = (input, clients) => {
   const requestedJoin = input[1];
   const msgId = input[2];
   const steamId = input[3];
-  const ind = clients.queue.findIndex((plyr) => testTimeMsgID(plyr, requestedJoin, msgId));
+  const ind = clients.queue.findIndex((plyr) => testTimemsgId(plyr, requestedJoin, msgId));
   if (ind > -1) clients.queue[ind].lastMsgTime = requestedJoin;
   else if (ind < 0) clients.queue.push(new Player(requestedJoin, msgId, "", steamId, ""));
 };
@@ -114,14 +116,14 @@ const addClientConnectionAddedclientconnection = (input, clients) => {
 const newPlayer = (input, clients) => {
   const requestedJoin = input[1];
   const msgId = input[2];
-  let ind = clients.connections.findIndex((plyr) => testTimeMsgID(plyr, requestedJoin, msgId));
+  let ind = clients.connections.findIndex((plyr) => testTimemsgId(plyr, requestedJoin, msgId));
   if (ind < 0) {
     //debugger;
   }
   if (ind === clients.connections.length - 1) {
     updateConnFilterPre(input, ind, clients);
   } else {
-    ind = clients.connections.findIndex((plyr) => testTimeMsgID(plyr, requestedJoin, msgId) && plyr.snc === "");
+    ind = clients.connections.findIndex((plyr) => testTimemsgId(plyr, requestedJoin, msgId) && plyr.snc === "");
     if (ind < 0) {
       //debugger;
     } else updateConnFilterPre(input, ind, clients);
@@ -139,8 +141,8 @@ const uNetConnectionClose = (input, clients) => {
   hasBeenRemoved([input[0], input[1], input[2], input[3]], clients);
 };
 
-const testTimeMsgID = (plyr, requestedJoin, msgID) => {
-  if (plyr.msgID === msgID && timeDiff(Date.parse(convTimeDate(plyr.requestedJoin)), Date.parse(convTimeDate(requestedJoin)), 6, 0)) return true;
+const testTimemsgId = (plyr, requestedJoin, msgId) => {
+  if (plyr.msgId === msgId && timeDiff(Date.parse(convTimeDate(plyr.requestedJoin)), Date.parse(convTimeDate(requestedJoin)), 6, 0)) return true;
   return false;
 };
 
