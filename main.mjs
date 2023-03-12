@@ -10,7 +10,7 @@ Log 03/04/23 12:41:43
 import { readFileSync } from "fs";
 
 //define filepath "C:/Users/user/Desktop/logFolder/SquadGame.log";
-const _logPath = "C:/Users/mattt/Desktop/log/SquadGame95.log";
+const _logPath = "C:/Users/user/Desktop/log/SquadGame.log";
 
 const _log = readFileSync(_logPath).toString().split(/\r?\n/);
 
