@@ -1,12 +1,15 @@
-/*Experimental code for Counting Queue DC events recorded in SquadServer.log by (WTH) Mattt*/
-/*For use on archived .log only, NOT INTENDED TO BE RUN ON A LIVE SERVER'S .log*/
-/*Sample console output*/
-/*`404 Successful Connections from 350 Unique Visitors
-653 D/C from Queue Events happened to 429 Unique Visitors`*/
+/*
+Experimental code for Counting Queue DC events recorded in SquadServer.log by (WTH) Mattt
+For use on archived .log only, NOT INTENDED TO BE RUN ON A LIVE SERVER'S .log
+Sample console output:
+Log 03/04/23 12:41:43
+448 Successful Connections from 377 Unique Visitors
+542 D/C from Queue Events happened to 429 Unique Visitors
+*/
 import { readFileSync } from "fs";
 
-/* define .log filepath "C:/Users/user/Desktop/logFolder/SquadGame.log"; */
-const _logPath = "C:/Users/user/Desktop/logFolder/SquadGame.log"; 
+//define filepath "C:/Users/user/Desktop/logFolder/SquadGame.log";
+const _logPath = "C:/Users/user/Desktop/log/SquadGame.log";
 
 const _log = readFileSync(_logPath).toString().split(/\r?\n/);
 
@@ -46,6 +49,10 @@ const endFunc = (clients) => {
   const totalUniqueDCfQ = [...new Set(dcArr)].length;
   console.log(`${totalGoodConnections} Successful Connections from ${totalGoodConnectionsUnique} Unique Visitors\n${totalDCfromQue} D/C from Queue Events happened to ${totalUniqueDCfQ} Unique Visitors`);
 };
+
+const LogfileBegin = (line) => {
+  console.log(`Log ${line[1]}`);
+}
 
 const hasBeenRemoved = (input, clients) => {
   const steamId = input[3];
@@ -278,6 +285,10 @@ const _regex = [
   {
     regex: /^\[([0-9.:-]+)]\[([ 0-9]+)]LogNet: Login request: \?Name=(.+) userId: Steam:UNKNOWN \[(0x[0-9A-f]{15})] platform: (.+)/,
     function: newNameandHex,
+  },
+  {
+    regex: /Log file open, (?<date_time>[0-9/ :]+)/,
+    function: LogfileBegin,
   },
 ];
 
