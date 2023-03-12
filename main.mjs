@@ -87,7 +87,7 @@ const notifyAcceptedConnection = (input, clients) => {
   const snc = input[7];
   const ind = clients.queue.findIndex((plyr) => plyr.steamId === steamId);
   if (ind > -1) {
-    clients.queue[ind].snc = input[7];
+    clients.queue[ind].snc = snc;
     return;
   }
   ind = clients.queue.findIndex((plyr) => testTimemsgId(plyr, requestedJoin, msgId));
@@ -120,7 +120,7 @@ const addClientConnectionAddedclientconnection = (input, clients) => {
   const steamId = input[3];
   const snc = input[5];
   const ind = clients.queue.findIndex((plyr) => plyr.steamId === steamId);
-  if (ind < 0) clients.queue.push(new Player(requestedJoin, msgId, "", steamId, ""));
+  if (ind < 0) clients.queue.push(new Player(requestedJoin, msgId, snc, steamId, ""));
   else {
     if (/^SteamNetConnection_(\d+)$/.test(snc)) {
       clients.queue[ind].snc = snc;
@@ -154,6 +154,8 @@ const updateConnFilterPre = (input, ind, clients) => {
     }
   }
   clients.queue = clients.queue.filter((plyr) => plyr.snc !== snc);
+
+
 };
 
 const testTimemsgId = (plyr, requestedJoin, msgId) => {
@@ -220,9 +222,13 @@ const connectionClosingDuringPendingDestroy = (input, self) => {
 const logNetJoinRequest = (input, clients) => {
   const time = input[1];
   const msgId = input[2];
-  const steamId = input[3];
-  clients.connections.push(new Player(time, msgId, "", steamId, ""));
-  clients.queue = clients.queue.filter((plyr) => plyr.steamId !== steamId);
+  const name = input[3];
+  const indQ = clients.queue.findIndex(plyr => plyr.name === name);
+  if (indQ > -1) clients.connections.push(new Player(time, msgId, clients.queue[indQ].snc, clients.queue[indQ].steamId, name));
+  else {
+    debugger;
+  }
+  clients.queue = clients.queue.filter((plyr) => plyr.name !== name);
 };
 
 const rareBadJoin = (input, clients) => {
