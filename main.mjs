@@ -10,17 +10,18 @@ Log 03/04/23 12:41:43
 import { readFileSync } from "fs";
 
 //define filepath "C:/Users/user/Desktop/logFolder/SquadGame.log";
-const _logPath = "C:/Users/user/Desktop/log/SquadGame.log";
+const _logPath = "C:/Users/mattt/Desktop/log/SquadGame95.log";
 
 const _log = readFileSync(_logPath).toString().split(/\r?\n/);
 
 class Player {
-  constructor(requestedJoin, msgId, snc, steamId, name) {
+  constructor(requestedJoin, msgId, snc, steamId, name, port) {
     this.requestedJoin = requestedJoin;
     this.msgId = msgId;
     this.snc = snc;
     this.steamId = steamId;
     this.name = name;
+    this.port = port;
   }
 }
 
@@ -64,13 +65,12 @@ const logFileBegin = (line) => {
 
 const hasBeenRemoved = (input, clients) => {
   const steamId = input[3];
-  const ind = clients.connections.findIndex((plyr) => plyr.steamId === steamId);
   const queInd = clients.queue.findIndex((plyr) => plyr.steamId === steamId);
-  if (ind > -1) {
-  } else if (queInd > -1) {
+  if (queInd > -1) {
     const name = clients.queue[queInd].name;
-    if (name === "") {
-      clients.dcB4Queue.push(steamId);
+    const port = clients.queue[queInd].port;
+    if (name === "" && port === "15000") {
+      clients.dcB4Queue.push(steamId); // must pass this once... if good connection follows this is record is removed.
     } else {
       // other DC queue state, with name ie possible Autokick?
     }
@@ -91,16 +91,28 @@ const notifyAcceptedConnection = (input, clients) => {
     return;
   }
   ind = clients.queue.findIndex((plyr) => testTimemsgId(plyr, requestedJoin, msgId));
-  if (ind < 0 && pId === qPort) clients.queue.push(new Player(requestedJoin, msgId, snc, steamId, ""));
+  if (ind < 0 && pId === qPort) clients.queue.push(new Player(requestedJoin, msgId, snc, steamId, "", qPort));
 };
 
 const serverAcceptingPostChallengeConnectionFrom = (input, clients) => {
   const requestedJoin = input[1];
   const msgId = input[2];
   const steamId = input[3];
+  const port = input[4];
   const ind = clients.queue.findIndex((plyr) => plyr.steamId === steamId);
-  if (ind < 0) clients.queue.push(new Player(requestedJoin, msgId, "", steamId, ""));
-  else {
+  let f;
+  clients.dcB4Queue.some(function (plyr, index) {
+    f = index;
+    return plyr.steamId === steamId;
+  });
+  if (ind < 0) {
+    if (port !== "15000" && port !== "") {
+      if (f > -1) {
+        clients.dcB4Queue.splice(f, 1);
+      }
+    }
+    clients.queue.push(new Player(requestedJoin, msgId, "", steamId, "", port));
+  } else {
     clients.queue[ind].requestedJoin = requestedJoin;
     clients.queue[ind].msgId = msgId;
   }
@@ -110,17 +122,19 @@ const logOnlineSTEAMAddinguser = (input, clients) => {
   const requestedJoin = input[1];
   const msgId = input[2];
   const steamId = input[3];
+  const port = input[4];
   const ind = clients.queue.findIndex((plyr) => testTimemsgId(plyr, requestedJoin, msgId));
-  if (ind < 0) clients.queue.push(new Player(requestedJoin, msgId, "", steamId, ""));
+  if (ind < 0) clients.queue.push(new Player(requestedJoin, msgId, "", steamId, "", port));
 };
 
 const addClientConnectionAddedclientconnection = (input, clients) => {
   const requestedJoin = input[1];
   const msgId = input[2];
   const steamId = input[3];
+  const port = input[4];
   const snc = input[5];
   const ind = clients.queue.findIndex((plyr) => plyr.steamId === steamId);
-  if (ind < 0) clients.queue.push(new Player(requestedJoin, msgId, snc, steamId, ""));
+  if (ind < 0) clients.queue.push(new Player(requestedJoin, msgId, snc, steamId, "", port));
   else {
     if (/^SteamNetConnection_(\d+)$/.test(snc)) {
       clients.queue[ind].snc = snc;
@@ -221,20 +235,19 @@ const logNetJoinRequest = (input, clients) => {
   const time = input[1];
   const msgId = input[2];
   const name = input[3];
-  const indQ = clients.queue.findIndex(plyr => plyr.name === name);
+  const indQ = clients.queue.findIndex((plyr) => plyr.name === name);
   if (indQ > -1) {
     const qSteamId = clients.queue[indQ].steamId;
     const qSnc = clients.queue[indQ].snc;
-    clients.connections.push(new Player(time, msgId, qSnc, qSteamId, name));
-    clients.queue = clients.queue.filter((plyr) => plyr.name !== name);
-  }
-  else clients.connections.push(new Player(time, msgId, "", "", name));
+    clients.connections.push(new Player(time, msgId, qSnc, qSteamId, name, ""));
+    clients.queue = clients.queue.filter((plyr) => plyr.steamId !== qSteamId);
+  } else clients.connections.push(new Player(time, msgId, "", "", name, ""));
 };
 
 const rareBadJoin = (input, clients) => {
   const time = input[1];
   const msgId = input[2];
-  clients.connections.push(new Player(time, msgId, "", "", ""));
+  clients.connections.push(new Player(time, msgId, "", "", "", ""));
 };
 
 const rareBadJoinSquad = (input, clients) => {
