@@ -1,7 +1,7 @@
 /*
 Experimental code for Counting Queue DC events recorded in SquadServer.log by (WTH) Mattt
 For use on archived .log only, NOT INTENDED TO BE RUN ON A LIVE SERVER'S .log
-This assumes before connection: const qPort = "15000"; see line 80 to alter if required.
+This assumes before connection: const qPort = "15000";
 Sample console output:
 Log 03/04/23 12:41:43
 448 Successful Connections from 377 Unique Visitors
