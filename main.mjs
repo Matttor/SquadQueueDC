@@ -224,11 +224,13 @@ const logNetJoinRequest = (input, clients) => {
   const msgId = input[2];
   const name = input[3];
   const indQ = clients.queue.findIndex(plyr => plyr.name === name);
-  if (indQ > -1) clients.connections.push(new Player(time, msgId, clients.queue[indQ].snc, clients.queue[indQ].steamId, name));
-  else {
-    debugger;
+  if (indQ > -1) {
+    const qSteamId = clients.queue[indQ].steamId;
+    const qSnc = clients.queue[indQ].snc;
+    clients.connections.push(new Player(time, msgId, qSnc, qSteamId, name));
+    clients.queue = clients.queue.filter((plyr) => plyr.name !== name);
   }
-  clients.queue = clients.queue.filter((plyr) => plyr.name !== name);
+  else clients.connections.push(new Player(time, msgId, "", "", name));
 };
 
 const rareBadJoin = (input, clients) => {
