@@ -66,10 +66,8 @@ const hasBeenRemoved = (input, clients) => {
   const steamId = input[3];
   const ind = clients.connections.findIndex((plyr) => plyr.steamId === steamId);
   const queInd = clients.queue.findIndex((plyr) => plyr.steamId === steamId);
-  if (ind > - 1){
-
-  }
-  else if (queInd > -1) {
+  if (ind > -1) {
+  } else if (queInd > -1) {
     const name = clients.queue[queInd].name;
     if (name === "") {
       clients.dcB4Queue.push(steamId);
@@ -113,7 +111,7 @@ const logOnlineSTEAMAddinguser = (input, clients) => {
   const msgId = input[2];
   const steamId = input[3];
   const ind = clients.queue.findIndex((plyr) => testTimemsgId(plyr, requestedJoin, msgId));
-   if (ind < 0) clients.queue.push(new Player(requestedJoin, msgId, "", steamId, ""));
+  if (ind < 0) clients.queue.push(new Player(requestedJoin, msgId, "", steamId, ""));
 };
 
 const addClientConnectionAddedclientconnection = (input, clients) => {
@@ -150,7 +148,11 @@ const newPlayer = (input, clients) => {
 const updateConnFilterPre = (input, ind, clients) => {
   const snc = input[3];
   const indP = clients.queue.findIndex((plyr) => plyr.snc === snc);
-  if (indP > -1 && clients.queue[indP].steamId !== "") clients.connections[ind].steamId = clients.queue[indP].steamId;
+  if (indP > -1) {
+    if (clients.queue[indP].steamId !== "") {
+      clients.connections[ind].steamId = clients.queue[indP].steamId;
+    }
+  }
   clients.queue = clients.queue.filter((plyr) => plyr.snc !== snc);
 };
 
@@ -176,8 +178,11 @@ const createdSquad = (input, clients) => {
 const newNameandHex = (input, clients) => {
   const name = input[3];
   const hex = input[4];
-  const ind = clients.queue.findIndex((plyr) => plyr.steamId === BigInt(hex).toString());
+  const steamId = BigInt(hex).toString();
+  const ind = clients.queue.findIndex((plyr) => plyr.steamId === steamId);
+  const indP = clients.connections.findIndex((plyr) => plyr.steamId === steamId);
   if (ind > -1) clients.queue[ind].name = name;
+  if (indP > -1) clients.queue.filter((plyr) => plyr.steamId !== steamId);
 };
 
 const uNetConnectionClose = (input, clients) => {
