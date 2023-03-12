@@ -154,8 +154,6 @@ const updateConnFilterPre = (input, ind, clients) => {
     }
   }
   clients.queue = clients.queue.filter((plyr) => plyr.snc !== snc);
-
-
 };
 
 const testTimemsgId = (plyr, requestedJoin, msgId) => {
