@@ -64,8 +64,12 @@ const logFileBegin = (line) => {
 
 const hasBeenRemoved = (input, clients) => {
   const steamId = input[3];
+  const ind = clients.connections.findIndex((plyr) => plyr.steamId === steamId);
   const queInd = clients.queue.findIndex((plyr) => plyr.steamId === steamId);
-  if (queInd > -1) {
+  if (ind > - 1){
+
+  }
+  else if (queInd > -1) {
     const name = clients.queue[queInd].name;
     if (name === "") {
       clients.dcB4Queue.push(steamId);
@@ -82,13 +86,14 @@ const notifyAcceptedConnection = (input, clients) => {
   const msgId = input[2];
   const steamId = input[5];
   const pId = input[6];
+  const snc = input[7];
   const ind = clients.queue.findIndex((plyr) => plyr.steamId === steamId);
   if (ind > -1) {
     clients.queue[ind].snc = input[7];
     return;
   }
   ind = clients.queue.findIndex((plyr) => testTimemsgId(plyr, requestedJoin, msgId));
-  if (ind < 0 && pId === qPort) clients.queue.push(new Player(requestedJoin, msgId, "", steamId, ""));
+  if (ind < 0 && pId === qPort) clients.queue.push(new Player(requestedJoin, msgId, snc, steamId, ""));
 };
 
 const serverAcceptingPostChallengeConnectionFrom = (input, clients) => {
@@ -115,11 +120,12 @@ const addClientConnectionAddedclientconnection = (input, clients) => {
   const requestedJoin = input[1];
   const msgId = input[2];
   const steamId = input[3];
+  const snc = input[5];
   const ind = clients.queue.findIndex((plyr) => plyr.steamId === steamId);
   if (ind < 0) clients.queue.push(new Player(requestedJoin, msgId, "", steamId, ""));
   else {
-    if (/^SteamNetConnection_(\d+)$/.test(input[5])) {
-      clients.queue[ind].snc = input[5];
+    if (/^SteamNetConnection_(\d+)$/.test(snc)) {
+      clients.queue[ind].snc = snc;
     }
   }
 };
@@ -211,6 +217,7 @@ const logNetJoinRequest = (input, clients) => {
   const msgId = input[2];
   const steamId = input[3];
   clients.connections.push(new Player(time, msgId, "", steamId, ""));
+  clients.queue = clients.queue.filter((plyr) => plyr.steamId !== steamId);
 };
 
 const rareBadJoin = (input, clients) => {
@@ -227,6 +234,7 @@ const rareBadJoinSquad = (input, clients) => {
   const ind = clients.connections.findIndex((plyr) => plyr.steamId === steamId);
   if (ind > -1) return;
   else clients.connections.push(new Player(time, msgId, "", steamId, name));
+  clients.queue = clients.queue.filter((plyr) => plyr.steamId !== steamId);
 };
 
 const _regex = [
